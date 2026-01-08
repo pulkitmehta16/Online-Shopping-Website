@@ -1,0 +1,184 @@
+{% extends "shop/basic.html" %}
+{% block title %}About Us{% endblock %}
+{% block body %}
+
+<div class="container my-5">
+  <!-- Hero Section -->
+  <div class="text-center mb-5">
+    <h1 class="fw-bold display-4 text-primary">About Us</h1>
+    <p class="text-muted fs-5">We believe in quality, trust, and delivering the best to our customers.</p>
+    <hr class="w-25 mx-auto">
+  </div>
+
+  <!-- Content Section -->
+  <div class="row align-items-center mb-5">
+    <!-- Left Image -->
+    <div class="col-md-6 text-center mb-4 mb-md-0">
+      <img src="C:\Users\Pulkit Mehta\OneDrive\Pictures\Screenshots" class="img-fluid rounded shadow-lg" alt="About Image">
+    </div>
+    <!-- Right Text -->
+    <div class="col-md-6">
+      <h3 class="fw-bold text-dark mb-3">Who We Are</h3>
+      <p class="text-muted fs-6">
+        We are a passionate team dedicated to providing the best products at affordable prices. 
+        Our mission is to make shopping simple, reliable, and enjoyable for everyone. 
+        With years of experience, we ensure quality service and customer satisfaction.
+      </p>
+      <button class="btn btn-primary mt-3">Learn More</button>
+    </div>
+  </div>
+
+  <!-- Vision & Mission Cards -->
+  <div class="row text-center">
+    <div class="col-md-4 mb-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="fw-bold text-primary">Our Mission</h5>
+          <p class="text-muted">To deliver high-quality products with excellent customer service.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="fw-bold text-primary">Our Vision</h5>
+          <p class="text-muted">To be the most trusted and customer-friendly online shopping platform.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="fw-bold text-primary">Our Values</h5>
+          <p class="text-muted">Integrity, quality, innovation, and customer-first approach.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+let cart = JSON.parse(localStorage.getItem('cart') || '{}');
+
+// Update navbar cart count with sum of quantities
+function updateCartCount() {
+    let Items = 0;
+    for (let id in cart) {
+        Items += cart[id]; // sum of quantities
+    }
+    $('#cart-count').text(Items);
+}
+
+// Render the Add to Cart / Plus/Minus buttons
+function renderCartButtons(id) {
+    let qty = cart[id] || 0;
+    let div = $('#cart-div-' + id);
+    if (qty > 0) {
+        div.html(`
+            <button class="btn btn-danger minus" data-id="${id}">-</button>
+            <span class="mx-2 qty-display" id="qty-${id}" style="font-size:1.25rem;">${qty}</span>
+            <button class="btn btn-success plus" data-id="${id}">+</button>
+        `);
+    } else {
+        div.html(`<button class="btn btn-primary add-cart" data-id="${id}">Add to Cart</button>`);
+    }
+}
+
+// Update cart dropdown with simplified view
+function updateCartDropdown() {
+    let itemsDiv = $('#cart-items');
+    itemsDiv.html('');
+    
+    let totalItems = 0;
+    let Amount = 0;
+
+    // Calculate total items and amount
+    for (let id in cart) {
+        let qty = cart[id];
+        totalItems += qty;
+        let price = parseFloat($('#price' + id).text().trim()) || 0;
+        Amount += price * qty;
+    }
+
+    // Show cart summary
+    if (totalItems > 0) {
+        itemsDiv.append(`
+            <div class="text-center mb-3">
+                <p class="mb-2"><strong>${totalItems} item(s) in cart</strong></p>
+                <p class="text-muted small">For more information about your CART, please visit our <a href="/shop" class="text-decoration-none">HOME page</a></p>
+            </div>
+        `);
+    } else {
+        itemsDiv.append(`
+            <div class="text-center mb-3">
+                <p class="text-muted">Your cart is empty</p>
+                <p class="text-muted small">Start shopping on our <a href="/shop" class="text-decoration-none">HOME page</a></p>
+            </div>
+        `);
+    }
+
+    // Checkout and Clear Cart buttons
+    itemsDiv.append(`
+        <div class="d-flex justify-content-center gap-2">
+            <form action='/shop/checkout' class="d-inline">
+                <button id="checkout-btn" class="btn btn-primary btn-sm" type='submit'>Checkout</button>
+            </form>
+            <button id="clear-cart-btn" class="btn btn-warning btn-sm">Clear Cart</button>
+        </div>
+    `);
+
+    updateCartCount();
+}
+
+// Add / Plus / Minus button click
+$(document).on('click', '.add-cart, .plus', function() {
+    let id = $(this).data('id');
+    cart[id] = (cart[id] || 0) + 1;
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCartButtons(id);
+    updateCartDropdown();
+});
+
+$(document).on('click', '.minus', function() {
+    let id = $(this).data('id');
+    if (cart[id] > 1) {
+        cart[id] -= 1;
+    } else {
+        delete cart[id];
+    }
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCartButtons(id);
+    updateCartDropdown();
+});
+
+// Clear Cart button
+$(document).on('click', '#clear-cart-btn', function() {
+    cart = {};
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartDropdown();
+    updateCartCount();
+    $('.cart').each(function(){
+        let id = $(this).data('id');
+        renderCartButtons(id);
+    });
+});
+
+// Initialize on page load
+$(document).ready(function() {
+    updateCartDropdown();
+
+    // Loop over all products on page instead of just one
+    $('.cart').each(function(){
+        let id = $(this).data('id');
+        if ($('#cart-div-' + id).length === 0) {
+            $(this).wrap('<span id="cart-div-' + id + '"></span>');
+        }
+        renderCartButtons(id);
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "shop/basic.html" %}
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+
+    <h2 class="text-center fw-bold mb-4">Checkout</h2>
+
+    <div class="row">
+
+        <!-- LEFT SIDE — CUSTOMER DETAILS -->
+        <div class="col-md-6">
+
+            <div class="card shadow-sm p-4">
+                <h4 class="fw-semibold mb-3">Billing Details</h4>
+
+                <form method="post" action="/shop/checkout/">
+                    {% csrf_token %}
+
+                    <input type="hidden" id="itemsJson" name="itemsJson">
+
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input name="name" class="form-control" placeholder="Enter your name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input name="email" type="email" class="form-control" placeholder="your@example.com" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Phone</label>
+                        <input name="phone" class="form-control" placeholder="10-digit number" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <textarea name="address" class="form-control" rows="2" placeholder="House No, Street, Area" required></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">City</label>
+                            <input name="city" class="form-control" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">State</label>
+                            <input name="state" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Pin Code</label>
+                        <input name="zip_code" class="form-control" required>
+                    </div>
+
+                    <input type="hidden" id="amount" name="amount">
+
+                    <button class="btn btn-success w-100 py-2 fw-bold fs-5">
+                        Place Order
+                    </button>
+                </form>
+
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE — ORDER SUMMARY -->
+        <div class="col-md-6">
+
+            <div class="card shadow-sm p-4">
+                <h4 class="fw-semibold mb-3">Order Summary</h4>
+
+                <div id="order-summary"></div>
+
+                <div class="d-flex justify-content-between mt-3 border-top pt-3">
+                    <h5 class="fw-bold">Total:</h5>
+                    <h5 class="fw-bold">₹<span id="total-amount">0</span></h5>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+let cart = JSON.parse(localStorage.getItem('cart') || '{}');
+
+function loadCheckoutSummary() {
+    let summary = '';
+    let total = 0;
+
+    for (let id in cart) {
+        let name = localStorage.getItem('name' + id) || "Product " + id;
+        let price = parseFloat(localStorage.getItem('price' + id)) || 0;
+        let qty = cart[id];
+
+        total += price * qty;
+
+        summary += `
+            <div class="d-flex justify-content-between border-bottom py-2">
+                <div><strong>${name}</strong><br><small>₹${price} × ${qty}</small></div>
+                <div class="fw-bold">₹${price * qty}</div>
+            </div>
+        `;
+    }
+
+    document.getElementById("order-summary").innerHTML = summary;
+    document.getElementById("total-amount").innerText = total;
+    document.getElementById("amount").value = total;
+    document.getElementById("itemsJson").value = JSON.stringify(cart);
+}
+
+document.addEventListener("DOMContentLoaded", loadCheckoutSummary);
+</script>
+{% endblock %}
